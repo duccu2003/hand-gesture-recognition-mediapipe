@@ -11,7 +11,6 @@ import mediapipe as mp
 import pyautogui
 from pynput.mouse import Listener, Controller
 from tkinter import Tk, Canvas
-import pygame
 import sys
 import cv2 as cv
 import cv2
@@ -141,27 +140,13 @@ while cap.isOpened():
             pyautogui.click(*myHand[12], button='right')
             pyautogui.mouseDown(button='right')
             pyautogui.mouseUp(button='right')
-        cv2.putText(
-            img,
-            str(count)+" Ngon tay"+" Thao tac: "+t,
-            (50, 50),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1,
-            (0, 0, 255),
-            2,
-            cv2.LINE_AA,
-        )
         
-        key = cv2.waitKey(1)
-        if key == 27:
-            break
-        x, y = pyautogui.position()
+        
+        
 
 mouse_x, mouse_y = get_mouse_position()
 print("Tọa độ hiện tại của con chuột:", mouse_x, mouse_y)
 
-cap.release()
-cv2.destroyAllWindows()
 
 
 def get_args():  # sourcery skip: inline-immediately-returned-variable
@@ -692,7 +677,7 @@ def draw_info(image, fps, mode, number):
                        cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1,
                        cv.LINE_AA)
     return image
-
+cv2.imshow("Cameras", img)
 
 if __name__ == '__main__':
     main()

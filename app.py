@@ -6,14 +6,162 @@ import argparse
 import itertools
 from collections import Counter
 from collections import deque
-
+import keyword
+import mediapipe as mp
+import pyautogui
+from pynput.mouse import Listener, Controller
+from tkinter import Tk, Canvas
+import pygame
+import sys
 import cv2 as cv
+import cv2
 import numpy as np
 import mediapipe as mp
-
 from utils import CvFpsCalc
 from model import KeyPointClassifier
 from model import PointHistoryClassifier
+mouse = Controller()
+
+def get_mouse_position():
+    return pyautogui.position()
+mpdrawing = mp.solutions.drawing_utils
+mp_hand = mp.solutions.hands
+hands = mp_hand.Hands(
+    model_complexity=0,
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5,
+)
+
+cap = cv2.VideoCapture(0)
+
+print("Nhận diện tay")
+while cap.isOpened():
+        
+        tmp = 0
+        success, img = cap.read()
+        if not success:
+            print("Lỗi")
+            break
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        result = hands.process(img)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        count = 0
+        if result.multi_hand_landmarks:
+            myHand = []
+            
+            for hand in result.multi_hand_landmarks:
+                mpdrawing.draw_landmarks(img, hand, mp_hand.HAND_CONNECTIONS)
+                for id, lm in enumerate(hand.landmark):
+                    h, w, _ = img.shape
+                    myHand.append([int(lm.x * w), int(lm.y * h)])
+                if(myHand[8][1]<myHand[5][1]and myHand[8][1]<myHand[10][1]):#8 < 5 la tay huong le tren
+                    count=count+1
+                if(myHand[12][1]<myHand[9][1]and myHand[12][1]<myHand[14][1]):
+                    count=count+1
+                if(myHand[16][1]<myHand[13][1]and myHand[16][1]<myHand[18][1]):
+                    count=count+1
+                if(myHand[20][1]<myHand[17][1]and myHand[20][1]<myHand[6][1]):
+                    count=count+1
+                if(myHand[4][0]>=myHand[8][0])and myHand[4][1]>=myHand[6][1]:
+                    count=count+1
+            
+           
+            if (
+                myHand[8][1] < myHand[5][1]
+                and myHand[12][1] < myHand[9][1]
+                and myHand[16][1] < myHand[13][1]
+                and myHand[20][1] < myHand[17][1]
+            ):
+                
+                screen_width=x, screen_height=y = pyautogui.size()
+                pyautogui.moveTo(*myHand[8])
+                tmp = 0
+                def move_mouse_direction(direction, distance):
+                    current_x, current_y = pyautogui.position()
+                
+                    if direction == "up":
+                        new_y = current_y - distance
+                        pyautogui.moveTo(current_x, new_y)
+                    elif direction == "down":
+                        new_y = current_y + distance
+                        pyautogui.moveTo(current_x, new_y)
+                    elif direction == "left":
+                        new_x = current_x - distance
+                        pyautogui.moveTo(new_x, current_y)
+                    elif direction == "right":
+                        new_x = current_x + distance
+                        pyautogui.moveTo(new_x, current_y)
+                    return pyautogui.position()
+                if myHand[8][1] == myHand[11][1] or myHand[6][1] == myHand[10][1]:
+                    tmp = 0
+                    
+                elif myHand[8][1] >= myHand[11][1] and myHand[8][1] <= myHand[19][1]:
+                    
+                    if myHand[8][1] > myHand[11][1] and myHand[7][1] <myHand[10][1]:
+                        tmp = 1
+                        
+                                           
+                        
+
+                    elif myHand[8][1]>myHand[19][1]and myHand[7][0]  >myHand[10][0]:
+                        tmp=4
+                    else:
+                        tmp=5
+                        
+    
+                elif myHand[12][1] > myHand[16][1]:
+                    tmp = 2
+                    
+                elif myHand[8][1] == myHand[14][1]:
+                    print("luot")
+                else:
+                    tmp = ""
+                
+        
+        
+        if tmp == 0:
+            t="Moving"
+            print("Moving")
+        elif tmp==4:
+            t="Giu"
+            print("Giu")
+            pyautogui.mouseDown(button='left')
+        elif tmp==5:
+            pyautogui.mouseUp(button='left')
+            pyautogui.leftClick  
+        elif tmp == 1:
+            t="Chuot trai"
+            print("Chuot trai")
+            pyautogui.click(*myHand[8])
+            
+        elif tmp == 2:
+            t="Chuot phai"
+            print("Chuot phai")
+            pyautogui.click(button='right')
+            pyautogui.click(*myHand[12], button='right')
+            pyautogui.mouseDown(button='right')
+            pyautogui.mouseUp(button='right')
+        cv2.putText(
+            img,
+            str(count)+" Ngon tay"+" Thao tac: "+t,
+            (50, 50),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 255),
+            2,
+            cv2.LINE_AA,
+        )
+        
+        key = cv2.waitKey(1)
+        if key == 27:
+            break
+        x, y = pyautogui.position()
+
+mouse_x, mouse_y = get_mouse_position()
+print("Tọa độ hiện tại của con chuột:", mouse_x, mouse_y)
+
+cap.release()
+cv2.destroyAllWindows()
 
 
 def get_args():  # sourcery skip: inline-immediately-returned-variable
